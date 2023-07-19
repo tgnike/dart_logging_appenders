@@ -15,6 +15,7 @@ class LokiApiAppender extends BaseDioLogSender {
     required this.server,
     required this.labels,
   })  : labelsString =
+            '{${labels.entries.map((entry) => '${entry.key}="${entry.value}"').join(',')}}';
 
   final String server;
   final Map<String, String> labels;
