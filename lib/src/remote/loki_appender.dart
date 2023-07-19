@@ -13,20 +13,10 @@ final _logger = DummyLogger('logging_appenders.loki_appender');
 class LokiApiAppender extends BaseDioLogSender {
   LokiApiAppender({
     required this.server,
-    required this.username,
-    required this.password,
     required this.labels,
   })  : labelsString =
-            '{${labels.entries.map((entry) => '${entry.key}="${entry.value}"').join(',')}}',
-        authHeader = 'Basic ${base64.encode(utf8.encode([
-          username,
-          password
-        ].join(':')))}';
 
   final String server;
-  final String username;
-  final String password;
-  final String authHeader;
   final Map<String, String> labels;
   final String labelsString;
 
@@ -71,9 +61,6 @@ class LokiApiAppender extends BaseDioLogSender {
           cancelToken: cancelToken,
           data: jsonBody,
           options: Options(
-            headers: <String, String>{
-              HttpHeaders.authorizationHeader: authHeader,
-            },
             contentType: ContentType(
                     ContentType.json.primaryType, ContentType.json.subType)
                 .value,
