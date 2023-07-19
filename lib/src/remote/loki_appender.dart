@@ -30,6 +30,7 @@ class LokiApiAppender extends BaseDioLogSender {
   final Map<String, String> labels;
   final String labelsString;
 
+
   static final DateFormat _dateFormat =
       DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
@@ -66,7 +67,7 @@ class LokiApiAppender extends BaseDioLogSender {
     });
     return _client
         .post<dynamic>(
-          'https://$server/api/prom/push',
+          server,
           cancelToken: cancelToken,
           data: jsonBody,
           options: Options(
