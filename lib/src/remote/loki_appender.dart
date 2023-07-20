@@ -14,12 +14,11 @@ class LokiApiAppender extends BaseDioLogSender {
   LokiApiAppender({
     required this.server,
     required this.labels,
-  })  : labelsString =
-            '{${labels.entries.map((entry) => '${entry.key}="${entry.value}"').join(',')}}';
+  }); 
 
   final String server;
   final Map<String, String> labels;
-  final String labelsString;
+  
 
 
   static final DateFormat _dateFormat =
@@ -40,21 +39,18 @@ class LokiApiAppender extends BaseDioLogSender {
   Future<void> sendLogEventsWithDio(List<LogEntry> entries,
       Map<String, String> userProperties, CancelToken cancelToken) {
     final jsonObject =
-        LokiPushBody([LokiStream(labelsString, entries)]).toJson();
-    final jsonBody = json.encode(jsonObject, toEncodable: (dynamic obj) {
+        LokiPushBody([LokiStream(labels, entries)]).toJson();
+    final jsonBody = jsonEncode(jsonObject, toEncodable: (dynamic obj) {
       if (obj is LogEntry) {
-        return {
-          'ts': _dateFormat.format(obj.ts.toUtc()),
-          'line': [
-            obj.lineLabels.entries
-                .map((entry) =>
-                    '${entry.key}=${_encodeLineLabelValue(entry.value)}')
-                .join(' '),
-            obj.line,
-          ].join(' - ')
-        };
+
+        obj.lineLabels.putIfAbsent('msg', () => obj.line);
+
+        return [
+          (obj.ts.microsecondsSinceEpoch*1000).toString(),         
+            jsonEncode(obj.lineLabels),      
+        ];
       }
-      return obj.toJson();
+      return obj;
     });
     return _client
         .post<dynamic>(
@@ -76,6 +72,7 @@ class LokiApiAppender extends BaseDioLogSender {
       if (err is DioError) {
         if (err.response != null) {
           message = 'response:${err.response!.data}';
+          print(message);
         }
       }
       _logger.warning(
@@ -99,9 +96,9 @@ class LokiPushBody {
 class LokiStream {
   LokiStream(this.labels, this.entries);
 
-  final String labels;
+  final Map<String, String> labels;
   final List<LogEntry> entries;
 
   Map<String, dynamic> toJson() =>
-      <String, dynamic>{'labels': labels, 'entries': entries};
+      <String, dynamic>{'stream': labels, 'values': entries};
 }
