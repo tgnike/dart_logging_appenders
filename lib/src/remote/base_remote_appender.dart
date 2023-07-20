@@ -76,7 +76,7 @@ abstract class BaseLogSender extends BaseLogAppender {
   void handle(LogRecord record) {
     final message = formatter.format(record);
     final lineLabels = {
-      'lvl': record.level.name,
+      'level': record.level.name.toLowerCase(),
       'logger': record.loggerName,
     };
     if (record.error != null) {
